@@ -37,7 +37,7 @@ Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool ekstern
 12. Email Targeting
 
 # Terminologi Pada Airflow
-Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka berikut beberapa terminologi dasar yang perlu dipahami.
+Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka berikut beberapa terminologi singkat yang perlu diketahui.
 1. DAG (Directed Acyclyc Graph) adalah graf asiklik terarah yang digunakan untuk menggambarkan workflow.
 2. Operator berfungsi untuk menjalankan suatu tugas di dalamnya. Operator juga menjelaskan tentang Tasks(tugas-tugas) di dalamnya.
 3. Task adalah istilah untuk "tugas" yang kemudian dijalankan oleh operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini lebih baik bersifat idempotent. 
@@ -45,28 +45,45 @@ Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka beri
 7. Workflow adalah kumpulan task yang memiliki dependensi terarah. Disebut juga sebagai DAGs yang merupakan kombinasi dari [1-6].
 
 
-# Konsep Utama Airflow (Arsitektur & Cara Kerja)
-## Arsitektur Airflow
-Apache Airflow memiliki beberapa komponen diantaranya: Worker, Scheduler, Web UI (Dashboard), Web Server, Database, Executor, dan Worker. Berikut penjelasan singkat komponen utama pada Airflow:
+# Arsitektur Airflow
+Airflow adalah platform untuk membangun dan menjalankan sebuah work flow. Work Flow direpresentasikan sebagai DAG (a Directed Acyclic Graph), dan berisi bagian-bagian individual dari pekerjaan yang disebut Task, disusun dengan dependensi dan aliran data yang diperhitungkan.
 
-![](https://imam.digmi.id/images/tutorial-airflow/part-1-2.png)
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
 
-1. Task: Tasks adalah “aktivitas” yang kamu buat kemudian dijalankan oleh Operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini diharapkan bersifat idempotent 
+DAG menentukan dependensi antara task, dan urutan untuk menjalankannya dan menjalankan percobaan ulang. Task sendiri menjelaskan apa yang harus dilakukan, baik itu mengambil data, menjalankan analisis, memicu sistem lain, atau lebih.
 
-Yang perlu diingat bahwa: Dalam membuat Tasks, terdapat task_id sama halnya dengan dag_id ini bersifat unik tidak boleh digunakan berulang kali dalam satu konteks DAG itu sendiri tapi task_id boleh sama dengan DAG lainnya, misal: dag_1 memiliki task_a dan task_b maka kita boleh menggunakan task_id yang sama pada dag_2.
-2.  Webserver: Proses ini menjalankan aplikasi Flask sederhana dengan gunicorn yang membaca status semua task dari database metadata dan membuat status ini untuk UI Web.
-3. Web UI: Komponen ini memungkinkan pengguna di sisi klien untuk melihat dan mengedit status task dalam database metadata. Karena terpisahnya komponen antara Scheduler dan database, UI Web memungkinkan pengguna untuk memanipulasi aktivitas Scheduler.
-4. Scheduler: Scheduler, atau ‘Penjadwal’ adalah pemroses berupa daemon yang menggunakan definisi dari DAG. Bila dihubungkan dengan task dalam database metadata, scheduler berfungsi untuk menentukan task mana yang perlu dieksekusi lebih dulu serta prioritas pelaksanaannya. Pada umumnya, scheduler sendiri dijalankan sebagai sebuah service.
-5. Database Metadata: Sekumpulan data yang menyimpan informasi mengenai status dari task. Update dari database sendiri dilakukan dengan menggunakan lapisan abstraksi yang diimplementasikan pada SQLAlchemy.
-6. Executor: Executor adalah pemroses antrian pesan yang berhubungan dengan scheduler dalam menentukan proses worker agar benar-benar melaksanakan setiap task sesuai jadwal. Terdapat beberapa jenis executor, di mana masing-masing executor tersebut memiliki metode khusus untuk memfasilitasi worker bekerja, maupun dalam mengeksekusi task. Misal, LocalExecutor menjalankan tugas secara paralel pada mesin yang sama dengan proses scheduler. Ada pula executor lain seperti CeleryExecutor yang mengeksekusi task menggunakan proses yang ada pada sekelompok mesin worker yang terpisah.
-7. Worker: Ini adalah pemroses yang benar-benar melaksanakan logika task dan ditentukan pada executor apa yang digunakan.
+Airflow secara umum terdiri dari komponen-komponen berikut:
 
-8. Scheduler adalah “petugas” yang bertanggung jawab dalam memantau semua DAG beserta Tasks yang ada.
-9. Executor adalah  pemroses antrian pesan yang berhubungan dengan scheduler dalam menentukan proses worker agar benar-benar melaksanakan setiap task sesuai jadwal. 
-10. Worker pemroses yang benar-benar melaksanakan logika task dan ditentukan pada executor apa yang digunakan.
+* **Scheduler**, yang menangani pemicu(triger) alur kerja terjadwal, dan mengirimkan task ke eksekutor untuk dijalankan.
 
+* Sebuah **eksekutor**, yang menangani Task yang sedang berjalan. Dalam instalasi Airflow default, eksekutor menjalankan semua yang ada di dalam schedulerl, tetapi sebagian besar eksekutor yang sesuai dengan produksi sebenarnya mendorong eksekusi task ke worker.
 
+* **Server web**, yang menyajikan antarmuka pengguna yang berguna untuk memeriksa, memicu(triger), dan men-debug perilaku DAG dan task.
 
+* **Folder file DAG**, dibaca oleh scheduler dan eksekutor (dan semua worker yang dimiliki eksekutor)
+
+* **Metadata Database**, digunakan oleh scheduler, eksekutor, dan web server untuk menyimpan status.
+
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/arsitektur%20airflow2.png)
+
+Sebagian besar eksekutor umumnya juga mengenal komponen lainnya dan memungkinkan mereke berkomunikasi dengan worker eksekutor tersebut - seperti antrian task - namun kita masih bisa menganggap bahwa eksekutor dan worker di dalamnya merupakan sebuah komponen logis tunggal di Airflow secara keseluruhan yang menangani task yag sesungguhnya.
+
+# DAG
+
+DAG adalah kepanjangan dari Directed Acyclic Graphs yang kita gunakan untuk membuat suatu workflow atau kita juga dapat memahami DAG sebagai sekumpulan dari Tasks. DAG inilah yang mencerminkan tentang alur dari workflow beserta relasi antar proses dan ketergantungan antar prosesnya.
+
+Beberapa properties DAG yang paling utama adalah sebagai berikut,
+1. `dag_id`: Pengidentifikasi unik di antara semua DAG,
+2. `start_date`: Titik waktu awal di mana task pada DAG akan dimulai,
+3. `schedule_interval`: Interval waktu sebuah DAG dieksekusi.
+
+Meskipun DAG digunakan untuk mengatur task dan mengatur konteks eksekutorya, DAGs tidak melakukan perhitungan yang sebenarnya. Sebagai gantinya, task adalah elemen dari Airflow yang berfungsi untuk melakukan pekerjaan yang ingin dilakukan. Terdapat dua tipe task:
+1. Task dapat melakukan beberapa operasi eksplisit, di mana, dalam hal ini, mereka disebut sebagai **operator**, atau,
+2. Task dapat menghentikan sementara pelaksanaan task dependensi hingga beberapa kriteria telah terpenuhi, di mana, dalam hal ini mereka disebut sebagai **sensor**.
+
+Setelah kita mendefinisikan DAG, membuat task, dan mendefinisikan dependensinya pada DAG , kita dapat mulai menjalankan task berdasarkan parameter DAG. Secara garis besar, konsep kunci dalam Airflow adalah `execution_time`. Ketika scheduler Airflow sedang berjalan, scheduler tersebut akan menentukan jadwal tanggal dengan interval yang teratur untuk menjalankan task terkait DAG. Waktu pelaksanaan dimulai pada `start_date` DAG dan berulang di setiap `schedule_interval`. Sebagai contoh, waktu eksekusi yang dijadwalkan adalah `(2017–01–01 00:00:00, 2017–01–02 00:00:00, …)` . Untuk setiap `execution_time`, DagRun dibuat dan beroperasi pada konteks waktu eksekusi itu. Dengan kata lain, **DagRun** hanyalah DAG dengan waktu eksekusi tertentu.
+
+Semua tugas yang terkait dengan DagRun disebut sebagai **TaskInstances**. Singkat kata, TaskInstance adalah task yang telah dipakai dan memiliki konteks execution_date. DagRuns dan TaskInstances sendiri adalah konsep sentral dalam Airflow. Setiap DagRun dan TaskInstance dikaitkan dengan entri dalam database metadata Airflow yang mencatat status mereka, misal, “queued”, “running”, “failed”, “skipped”, atau “up for retry”. Membaca dan memperbaharui status ini adalah kunci untuk penjadwalan dan proses eksekusi pada Airflow.
 
 
 
