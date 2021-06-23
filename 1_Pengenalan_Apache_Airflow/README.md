@@ -36,15 +36,6 @@ Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool ekstern
 11. Sessionization
 12. Email Targeting
 
-# Terminologi Pada Airflow
-Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka berikut beberapa terminologi singkat yang perlu diketahui.
-1. DAG (Directed Acyclyc Graph) adalah graf asiklik terarah yang digunakan untuk menggambarkan workflow.
-2. Operator berfungsi untuk menjalankan suatu tugas di dalamnya. Operator juga menjelaskan tentang Tasks(tugas-tugas) di dalamnya.
-3. Task adalah istilah untuk "tugas" yang kemudian dijalankan oleh operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini lebih baik bersifat idempotent. 
-6. Task Instance adalah istilah untuk Worker adalah istilah untuk serangkaian tugas tertentu: DAG + TASK + POINT IN TIME
-7. Workflow adalah kumpulan task yang memiliki dependensi terarah. Disebut juga sebagai DAGs yang merupakan kombinasi dari [1-6].
-
-
 # Arsitektur Airflow
 Airflow adalah platform untuk membangun dan menjalankan sebuah work flow. Work Flow direpresentasikan sebagai DAG (a Directed Acyclic Graph), dan berisi bagian-bagian individual dari pekerjaan yang disebut Task, disusun dengan dependensi dan aliran data yang diperhitungkan.
 
@@ -68,7 +59,7 @@ Airflow secara umum terdiri dari komponen-komponen berikut:
 
 Sebagian besar eksekutor umumnya juga mengenal komponen lainnya dan memungkinkan mereke berkomunikasi dengan worker eksekutor tersebut - seperti antrian task - namun kita masih bisa menganggap bahwa eksekutor dan worker di dalamnya merupakan sebuah komponen logis tunggal di Airflow secara keseluruhan yang menangani task yag sesungguhnya.
 
-# DAG
+# Pengenalan DAG
 
 DAG adalah kepanjangan dari Directed Acyclic Graphs yang kita gunakan untuk membuat suatu workflow atau kita juga dapat memahami DAG sebagai sekumpulan dari Tasks. DAG inilah yang mencerminkan tentang alur dari workflow beserta relasi antar proses dan ketergantungan antar prosesnya.
 
@@ -85,11 +76,75 @@ Setelah kita mendefinisikan DAG, membuat task, dan mendefinisikan dependensinya 
 
 Semua tugas yang terkait dengan DagRun disebut sebagai **TaskInstances**. Singkat kata, TaskInstance adalah task yang telah dipakai dan memiliki konteks execution_date. DagRuns dan TaskInstances sendiri adalah konsep sentral dalam Airflow. Setiap DagRun dan TaskInstance dikaitkan dengan entri dalam database metadata Airflow yang mencatat status mereka, misal, “queued”, “running”, “failed”, “skipped”, atau “up for retry”. Membaca dan memperbaharui status ini adalah kunci untuk penjadwalan dan proses eksekusi pada Airflow.
 
+Beban kerja
+DAG berjalan melalui serangkaian Tugas, dan ada tiga jenis tugas umum yang akan Anda lihat:
+
+Operator, tugas yang telah ditentukan sebelumnya yang dapat Anda hubungkan dengan cepat untuk membangun sebagian besar DAG Anda.
+
+Sensor, subkelas khusus Operator yang sepenuhnya menunggu peristiwa eksternal terjadi.
+
+@task yang didekorasi dengan TaskFlow, yang merupakan fungsi Python khusus yang dikemas sebagai Tugas.
+
+Secara internal, ini semua sebenarnya adalah subkelas dari BaseOperator Airflow, dan konsep Task dan Operator agak dapat dipertukarkan, tetapi berguna untuk menganggapnya sebagai konsep yang terpisah - pada dasarnya, Operator dan Sensor adalah templat, dan ketika Anda memanggilnya dalam file DAG , Anda sedang membuat Tugas.
+
+Aliran Kontrol
+DAG dirancang untuk dijalankan berkali-kali, dan beberapa proses dapat terjadi secara paralel. DAG diparameterisasi, selalu menyertakan tanggal mereka "berjalan" (tanggal_eksekusi), tetapi juga dengan parameter opsional lainnya.
+
+Tugas memiliki dependensi yang dideklarasikan satu sama lain. Anda akan melihat ini di DAG menggunakan operator >> dan <<:
+
+first_task >> [second_task, third_task]
+tugas_ketiga << tugas_keempat
+Atau, dengan metode set_upstream dan set_downstream:
+
+first_task.set_downstream([second_task, third_task])
+tugas_ketiga.set_upstream(tugas_keempat)
+Ketergantungan ini adalah apa yang membentuk "tepi" grafik, dan bagaimana Airflow bekerja di urutan mana untuk menjalankan tugas Anda. Secara default, tugas akan menunggu semua tugas hulunya berhasil sebelum dijalankan, tetapi ini bisa saja dikustomisasi menggunakan fitur seperti Branching, LatestOnly, dan Trigger Rules.
+
+Untuk meneruskan data antar tugas, Anda memiliki dua opsi:
+
+XComs ("Cross-communications"), sebuah sistem di mana Anda dapat memiliki tugas mendorong dan menarik sedikit metadata.
+
+Mengunggah dan mengunduh file besar dari layanan penyimpanan (baik yang Anda jalankan, atau bagian dari cloud publik)
+
+Airflow mengirimkan Tugas untuk dijalankan di Pekerja saat ruang tersedia, jadi tidak ada jaminan semua tugas di DAG Anda akan berjalan di pekerja yang sama atau mesin yang sama.
+
+Saat Anda membangun DAG Anda, mereka cenderung menjadi sangat kompleks, sehingga Airflow menyediakan beberapa mekanisme untuk membuat ini lebih berkelanjutan - SubDAG memungkinkan Anda membuat DAG "dapat digunakan kembali" yang dapat Anda sematkan ke yang lain, dan TaskGroups memungkinkan Anda mengelompokkan tugas secara visual di UI.
+
+Ada juga fitur untuk memungkinkan Anda dengan mudah melakukan pra-konfigurasi akses ke sumber daya pusat, seperti penyimpanan data, dalam bentuk Connections & Hooks, dan untuk membatasi konkurensi, melalui Pools.
+
+# Userinterface Airflow
+
+Airflow hadir dengan antarmuka pengguna yang memungkinkan kita melihat apa yang dilakukan DAG dan tugasnya, memicu menjalankan DAG, melihat log, dan melakukan beberapa debug terbatas dan penyelesaian masalah dengan DAG kita.
+
+![](https://airflow.apache.org/docs/apache-airflow/stable/_images/dags.png)
+
+
+# Alur Kerja Airflow
+
+Pertama, scheduler membaca folder DAG mem-parsing dan melihat apakah script-nya sudah memenuhi kriteria.
+
+
+
+Jika sudah memenuhi kriteria, scheduler akan membuat DagRun di DB dan me-register script-nya agar DagRun berstatus Running.
+
+
+Selanjutnya, scheduler menjadwalkan TaskInstances untuk dijalankan hingga TaskInstance terjadwalkan “Scheduled”.
+
+
+Lalu, scheduler mengirim TaskInstance ke Executor agar Executor mengirim TaskInstance ke sistem antrian agar terantrikan atau Queued.
+
+Executor mengeluarkan TaskInstance, dilanjutkan dengan pembaharuan TaskInstance di MetaDB untuk dijalankan. Setelahnya, worker mengeksekusi TaskInstance.
+
+Setelah task selesai, Executor akan memperbaharui TaskInstance ke Success. Walau demikian, DagRun masih berjalan ke task berikutnya dalam Dag tersebut.
+
+Setelah semua task selesai dalam Dag, scheduler akan memperbaharui status menjadiSuccess pada MetaDB DagRun. Jika terdapat task yang gagal, DagRun akan memperbaharuinya ke Failed.
+
+Akhirnya, Web Server membaca MetaDB ke Pembaharuan UI.
 
 
 
 ### Referensi
-https://airflow.apache.org/
-https://medium.com/warung-pintar/airflow-fundamental-4097005a8498
-https://yunusmuhammad007.medium.com/konsep-kerja-apache-airflow-db85e34b2fa4
-https://imam.digmi.id/post/tutorial-airflow-part-1/
+* https://airflow.apache.org/
+* https://medium.com/warung-pintar/airflow-fundamental-4097005a8498
+* https://yunusmuhammad007.medium.com/konsep-kerja-apache-airflow-db85e34b2fa4
+* https://imam.digmi.id/post/tutorial-airflow-part-1/
