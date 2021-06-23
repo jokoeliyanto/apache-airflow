@@ -24,7 +24,32 @@ Sebagaimana suatu Workflow Management Systems, Airflow dapat difungsikan untuk b
 
 Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool eksternal yang banyak seperti: Hive, Pig, Google BigQuery, Amazon Redshift, Amazon S3, dst. Selain itu, hal terpenting lainnya adalah bahwa Airflow memiliki keunggulan pada scaling yang tak terbatas. Maka menjadi wajar jika Airflow menjadi pilihan yang tepat untuk membangun data pipeline saat ini.
 
+# Terminologi Pada Airflow
+Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka berikut beberapa terminologi dasar yang perlu dipahami.
+1. DAG (Directed Acyclyc Graph) adalah graf asiklik terarah yang digunakan untuk menggambarkan workflow.
+2. Operator berfungsi untuk menjalankan suatu tugas di dalamnya. Operator juga menjelaskan tentang Tasks(tugas-tugas) di dalamnya.
+3. Task adalah istilah untuk "tugas" yang kemudian dijalankan oleh operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini lebih baik bersifat idempotent. 
+6. Task Instance adalah istilah untuk Worker adalah istilah untuk serangkaian tugas tertentu: DAG + TASK + POINT IN TIME
+7. Workflow adalah kumpulan task yang memiliki dependensi terarah. Disebut juga sebagai DAGs yang merupakan kombinasi dari [1-6].
 
+
+# Konsep Utama Airflow (Arsitektur & Cara Kerja)
+## Arsitektur Airflow
+Apache Airflow memiliki beberapa komponen diantaranya: Worker, Scheduler, Web UI (Dashboard), Web Server, Database, Executor, dan Worker. Berikut penjelasan singkat komponen utama pada Airflow:
+
+1. Task: Tasks adalah “aktivitas” yang kamu buat kemudian dijalankan oleh Operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini diharapkan bersifat idempotent 
+
+Yang perlu diingat bahwa: Dalam membuat Tasks, terdapat task_id sama halnya dengan dag_id ini bersifat unik tidak boleh digunakan berulang kali dalam satu konteks DAG itu sendiri tapi task_id boleh sama dengan DAG lainnya, misal: dag_1 memiliki task_a dan task_b maka kita boleh menggunakan task_id yang sama pada dag_2.
+2.  Webserver: Proses ini menjalankan aplikasi Flask sederhana dengan gunicorn yang membaca status semua task dari database metadata dan membuat status ini untuk UI Web.
+3. Web UI: Komponen ini memungkinkan pengguna di sisi klien untuk melihat dan mengedit status task dalam database metadata. Karena terpisahnya komponen antara Scheduler dan database, UI Web memungkinkan pengguna untuk memanipulasi aktivitas Scheduler.
+4. Scheduler: Scheduler, atau ‘Penjadwal’ adalah pemroses berupa daemon yang menggunakan definisi dari DAG. Bila dihubungkan dengan task dalam database metadata, scheduler berfungsi untuk menentukan task mana yang perlu dieksekusi lebih dulu serta prioritas pelaksanaannya. Pada umumnya, scheduler sendiri dijalankan sebagai sebuah service.
+5. Database Metadata: Sekumpulan data yang menyimpan informasi mengenai status dari task. Update dari database sendiri dilakukan dengan menggunakan lapisan abstraksi yang diimplementasikan pada SQLAlchemy.
+6. Executor: Executor adalah pemroses antrian pesan yang berhubungan dengan scheduler dalam menentukan proses worker agar benar-benar melaksanakan setiap task sesuai jadwal. Terdapat beberapa jenis executor, di mana masing-masing executor tersebut memiliki metode khusus untuk memfasilitasi worker bekerja, maupun dalam mengeksekusi task. Misal, LocalExecutor menjalankan tugas secara paralel pada mesin yang sama dengan proses scheduler. Ada pula executor lain seperti CeleryExecutor yang mengeksekusi task menggunakan proses yang ada pada sekelompok mesin worker yang terpisah.
+7. Worker: Ini adalah pemroses yang benar-benar melaksanakan logika task dan ditentukan pada executor apa yang digunakan.
+
+8. Scheduler adalah “petugas” yang bertanggung jawab dalam memantau semua DAG beserta Tasks yang ada.
+9. Executor adalah  pemroses antrian pesan yang berhubungan dengan scheduler dalam menentukan proses worker agar benar-benar melaksanakan setiap task sesuai jadwal. 
+10. Worker pemroses yang benar-benar melaksanakan logika task dan ditentukan pada executor apa yang digunakan.
 
 
 
