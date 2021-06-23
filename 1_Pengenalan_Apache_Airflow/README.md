@@ -22,7 +22,19 @@ Sebagaimana suatu Workflow Management Systems, Airflow dapat difungsikan untuk b
 3. Mengelola alokasi sumber daya melalui penjadwalan resource dengan mematikan dan menghidupkan resource mesin melalui task perintah.
 4. Menyediakan mekanisme untuk melacak kondisi berbagai task dan memulihkannya dari kegagalan task.
 
-Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool eksternal yang banyak seperti: Hive, Pig, Google BigQuery, Amazon Redshift, Amazon S3, dst. Selain itu, hal terpenting lainnya adalah bahwa Airflow memiliki keunggulan pada scaling yang tak terbatas. Maka menjadi wajar jika Airflow menjadi pilihan yang tepat untuk membangun data pipeline saat ini.
+Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool eksternal yang banyak seperti: Hive, Pig, Google BigQuery, Amazon Redshift, Amazon S3, dst. Selain itu, hal terpenting lainnya adalah bahwa Airflow memiliki keunggulan pada scaling yang tak terbatas. Maka menjadi wajar jika Airflow menjadi pilihan yang tepat untuk membangun data pipeline saat ini. Beikut adalah berbagai implementasi Airflow:
+1. Data Warehousing
+2. Data Export from/to production
+3. ETL Process
+4. Infrastructure Monitoring
+5. Experimentation
+6. Growth Analytics
+7. Search Ranking
+8. Operational Work
+9. Engangemet Analytics
+10. Anomaly Detection
+11. Sessionization
+12. Email Targeting
 
 # Terminologi Pada Airflow
 Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka berikut beberapa terminologi dasar yang perlu dipahami.
@@ -36,6 +48,8 @@ Sebelum membahas lebih lanjut tentang konsep-konsep dasar pada Airflow maka beri
 # Konsep Utama Airflow (Arsitektur & Cara Kerja)
 ## Arsitektur Airflow
 Apache Airflow memiliki beberapa komponen diantaranya: Worker, Scheduler, Web UI (Dashboard), Web Server, Database, Executor, dan Worker. Berikut penjelasan singkat komponen utama pada Airflow:
+
+![](https://imam.digmi.id/images/tutorial-airflow/part-1-2.png)
 
 1. Task: Tasks adalah “aktivitas” yang kamu buat kemudian dijalankan oleh Operator. Task bisa berupa Python function atau eksternal yang bisa dipanggil. Tasks ini diharapkan bersifat idempotent 
 
