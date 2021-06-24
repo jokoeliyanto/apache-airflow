@@ -39,7 +39,7 @@ Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool ekstern
 # Arsitektur Airflow
 Airflow adalah platform untuk membangun dan menjalankan sebuah work flow. Work Flow direpresentasikan sebagai DAG (a Directed Acyclic Graph), dan berisi bagian-bagian individual dari pekerjaan yang disebut Task, disusun dengan dependensi dan aliran data yang diperhitungkan.
 
-![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
+![Contoh DAG](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
 
 DAG menentukan dependensi antara task, dan urutan untuk menjalankannya dan menjalankan percobaan ulang. Task sendiri menjelaskan apa yang harus dilakukan, baik itu mengambil data, menjalankan analisis, memicu sistem lain, atau lebih.
 
@@ -55,7 +55,7 @@ Airflow secara umum terdiri dari komponen-komponen berikut:
 
 * **Metadata Database**, digunakan oleh scheduler, eksekutor, dan web server untuk menyimpan status.
 
-![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/arsitektur%20airflow2.png)
+![Arsitektur Apache Airflow](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/arsitektur%20airflow2.png)
 
 Sebagian besar eksekutor umumnya juga mengenal komponen lainnya dan memungkinkan mereke berkomunikasi dengan worker eksekutor tersebut - seperti antrian task - namun kita masih bisa menganggap bahwa eksekutor dan worker di dalamnya merupakan sebuah komponen logis tunggal di Airflow secara keseluruhan yang menangani task yag sesungguhnya.
 
@@ -107,35 +107,51 @@ Saat Anda membangun DAG Anda, mereka cenderung menjadi sangat kompleks, sehingga
 
 Ada juga fitur untuk memungkinkan Anda dengan mudah melakukan pra-konfigurasi akses ke sumber daya pusat, seperti penyimpanan data, dalam bentuk Connections & Hooks, dan untuk membatasi konkurensi, melalui Pools.
 
-# Userinterface Airflow
+# User Interface Airflow
 
 Airflow hadir dengan antarmuka pengguna yang memungkinkan kita melihat apa yang dilakukan DAG dan tugasnya, memicu menjalankan DAG, melihat log, dan melakukan beberapa debug terbatas dan penyelesaian masalah dengan DAG kita.
 
-![](https://airflow.apache.org/docs/apache-airflow/stable/_images/dags.png)
+![User Interface Aairflow](https://airflow.apache.org/docs/apache-airflow/stable/_images/dags.png)
 
 
 # Alur Kerja Airflow
 
 Pertama, scheduler membaca folder DAG mem-parsing dan melihat apakah script-nya sudah memenuhi kriteria.
 
-
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/1.png)
 
 Jika sudah memenuhi kriteria, scheduler akan membuat DagRun di DB dan me-register script-nya agar DagRun berstatus Running.
 
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/2.png)
 
 Selanjutnya, scheduler menjadwalkan TaskInstances untuk dijalankan hingga TaskInstance terjadwalkan “Scheduled”.
 
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/3.png)
 
 Lalu, scheduler mengirim TaskInstance ke Executor agar Executor mengirim TaskInstance ke sistem antrian agar terantrikan atau Queued.
 
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/4.png)
+
 Executor mengeluarkan TaskInstance, dilanjutkan dengan pembaharuan TaskInstance di MetaDB untuk dijalankan. Setelahnya, worker mengeksekusi TaskInstance.
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/5.png)
 
 Setelah task selesai, Executor akan memperbaharui TaskInstance ke Success. Walau demikian, DagRun masih berjalan ke task berikutnya dalam Dag tersebut.
 
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/6.png)
+
 Setelah semua task selesai dalam Dag, scheduler akan memperbaharui status menjadiSuccess pada MetaDB DagRun. Jika terdapat task yang gagal, DagRun akan memperbaharuinya ke Failed.
+
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/7.png)
 
 Akhirnya, Web Server membaca MetaDB ke Pembaharuan UI.
 
+![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/8.png)
+
+# Contoh Penerapan di StatrtUp Indonesia
+
+Penggunaan Apache Airflow oleh Warung Pintar pada Google Cloud Composer
+
+![](https://miro.medium.com/max/1452/1*ouLGL-9ZwLiG1PHHPct0ng.png)
 
 
 ### Referensi
