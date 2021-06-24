@@ -39,7 +39,7 @@ Apache Airflow memiliki banyak fitur, dan didukung dengan integrasi tool ekstern
 # Arsitektur Airflow
 Airflow adalah platform untuk membangun dan menjalankan sebuah work flow. Work Flow direpresentasikan sebagai DAG (a Directed Acyclic Graph), dan berisi bagian-bagian individual dari pekerjaan yang disebut Task, disusun dengan dependensi dan aliran data yang diperhitungkan.
 
-![Contoh DAG](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
+!["Contoh DAG"](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
 
 DAG menentukan dependensi antara task, dan urutan untuk menjalankannya dan menjalankan percobaan ulang. Task sendiri menjelaskan apa yang harus dilakukan, baik itu mengambil data, menjalankan analisis, memicu sistem lain, atau lebih.
 
@@ -55,7 +55,7 @@ Airflow secara umum terdiri dari komponen-komponen berikut:
 
 * **Metadata Database**, digunakan oleh scheduler, eksekutor, dan web server untuk menyimpan status.
 
-![Arsitektur Apache Airflow](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/arsitektur%20airflow2.png)
+!["Arsitektur Apache Airflow"](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/arsitektur%20airflow2.png)
 
 Sebagian besar eksekutor umumnya juga mengenal komponen lainnya dan memungkinkan mereke berkomunikasi dengan worker eksekutor tersebut - seperti antrian task - namun kita masih bisa menganggap bahwa eksekutor dan worker di dalamnya merupakan sebuah komponen logis tunggal di Airflow secara keseluruhan yang menangani task yag sesungguhnya.
 
@@ -111,7 +111,7 @@ Ada juga fitur untuk memungkinkan Anda dengan mudah melakukan pra-konfigurasi ak
 
 Airflow hadir dengan antarmuka pengguna yang memungkinkan kita melihat apa yang dilakukan DAG dan tugasnya, memicu menjalankan DAG, melihat log, dan melakukan beberapa debug terbatas dan penyelesaian masalah dengan DAG kita.
 
-![User Interface Aairflow](https://airflow.apache.org/docs/apache-airflow/stable/_images/dags.png)
+!["User Interface Aairflow"](https://airflow.apache.org/docs/apache-airflow/stable/_images/dags.png)
 
 
 # Alur Kerja Airflow
