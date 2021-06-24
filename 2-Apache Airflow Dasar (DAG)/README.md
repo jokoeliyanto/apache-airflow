@@ -1,13 +1,11 @@
 ![](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/header%20modul2.png)
 
-# DAGs
+# DAG
 DAG adalah kepanjangan dari Directed Acyclic Graphs yang kita gunakan untuk membuat suatu workflow atau kita juga dapat memahami DAG sebagai sekumpulan dari Tasks. DAG inilah yang mencerminkan tentang alur dari workflow beserta relasi antar proses dan ketergantungan antar prosesnya.
 
-Beberapa properties DAG yang paling utama adalah sebagai berikut,
-1. `dag_id`: Pengidentifikasi unik di antara semua DAG,
-2. `start_date`: Titik waktu awal di mana task pada DAG akan dimulai,
-3. `schedule_interval`: Interval waktu sebuah DAG dieksekusi.
+!["Contoh DAG"](https://github.com/jokoeliyanto/apache-airflow/blob/main/image/DAG%20Example2.png)
 
+DAG menentukan dependensi antara task, dan urutan untuk menjalankannya dan menjalankan percobaan ulang. Task sendiri menjelaskan apa yang harus dilakukan, baik itu mengambil data, menjalankan analisis, memicu sistem lain, atau lebih.
 
 # DAG File
 
@@ -95,7 +93,15 @@ t3 = BashOperator(
 t1 >> [t2,t3]
 ```
 
+# Praktik Apache Airflow Dasar
 
+Pada repository ini terdapat 3 buah script python yang berbentuk DAG file:
+1. DAG Hello World : Merupakan DAG pertama yang akan kita buat sebagai bahan pembelajaran
+2. DAG 2
+3. DAG 3
+4. DAG 4
+5. DAG 5
+6. DAG 6
 
 
 
