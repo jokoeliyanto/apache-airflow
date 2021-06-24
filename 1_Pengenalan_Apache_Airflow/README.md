@@ -74,37 +74,32 @@ Meskipun DAG digunakan untuk mengatur task dan mengatur konteks eksekutorya, DAG
 
 Setelah kita mendefinisikan DAG, membuat task, dan mendefinisikan dependensinya pada DAG , kita dapat mulai menjalankan task berdasarkan parameter DAG. Secara garis besar, konsep kunci dalam Airflow adalah `execution_time`. Ketika scheduler Airflow sedang berjalan, scheduler tersebut akan menentukan jadwal tanggal dengan interval yang teratur untuk menjalankan task terkait DAG. Waktu pelaksanaan dimulai pada `start_date` DAG dan berulang di setiap `schedule_interval`. Sebagai contoh, waktu eksekusi yang dijadwalkan adalah `(2017–01–01 00:00:00, 2017–01–02 00:00:00, …)` . Untuk setiap `execution_time`, DagRun dibuat dan beroperasi pada konteks waktu eksekusi itu. Dengan kata lain, **DagRun** hanyalah DAG dengan waktu eksekusi tertentu.
 
-Semua tugas yang terkait dengan DagRun disebut sebagai **TaskInstances**. Singkat kata, TaskInstance adalah task yang telah dipakai dan memiliki konteks execution_date. DagRuns dan TaskInstances sendiri adalah konsep sentral dalam Airflow. Setiap DagRun dan TaskInstance dikaitkan dengan entri dalam database metadata Airflow yang mencatat status mereka, misal, “queued”, “running”, “failed”, “skipped”, atau “up for retry”. Membaca dan memperbaharui status ini adalah kunci untuk penjadwalan dan proses eksekusi pada Airflow.
+Semua tugas yang terkait dengan DagRun disebut sebagai **TaskInstances**. Singkat kata, TaskInstance adalah task yang telah dipakai dan memiliki konteks execution_date. DagRuns dan TaskInstances sendiri adalah konsep sentral dalam Airflow. Setiap DagRun dan TaskInstance dikaitkan dengan entri dalam database metadata Airflow yang mencatat status mereka, misal, `queued`, `running`, `failed`, `skipped`, atau `up for retry`. Membaca dan memperbaharui status ini adalah kunci untuk penjadwalan dan proses eksekusi pada Airflow.
 
-Beban kerja
-DAG berjalan melalui serangkaian Tugas, dan ada tiga jenis tugas umum yang akan Anda lihat:
 
-Operator, tugas yang telah ditentukan sebelumnya yang dapat Anda hubungkan dengan cepat untuk membangun sebagian besar DAG Anda.
+# Control Flow
 
-Sensor, subkelas khusus Operator yang sepenuhnya menunggu peristiwa eksternal terjadi.
+DAG dirancang untuk dijalankan berkali-kali, dan beberapa proses dapat terjadi secara paralel. DAG diparameterisasi, selalu menyertakan tanggal mereka `running for` (`execution_date`), tetapi juga dengan parameter opsional lainnya.
 
-@task yang didekorasi dengan TaskFlow, yang merupakan fungsi Python khusus yang dikemas sebagai Tugas.
-
-Secara internal, ini semua sebenarnya adalah subkelas dari BaseOperator Airflow, dan konsep Task dan Operator agak dapat dipertukarkan, tetapi berguna untuk menganggapnya sebagai konsep yang terpisah - pada dasarnya, Operator dan Sensor adalah templat, dan ketika Anda memanggilnya dalam file DAG , Anda sedang membuat Tugas.
-
-Aliran Kontrol
-DAG dirancang untuk dijalankan berkali-kali, dan beberapa proses dapat terjadi secara paralel. DAG diparameterisasi, selalu menyertakan tanggal mereka "berjalan" (tanggal_eksekusi), tetapi juga dengan parameter opsional lainnya.
-
-Tugas memiliki dependensi yang dideklarasikan satu sama lain. Anda akan melihat ini di DAG menggunakan operator >> dan <<:
-
+Tugas memiliki dependensi yang dideklarasikan satu sama lain. Anda akan melihat ini di DAG menggunakan operator `>>` dan `<<`:
+```
 first_task >> [second_task, third_task]
-tugas_ketiga << tugas_keempat
-Atau, dengan metode set_upstream dan set_downstream:
+third_task << fourth_task
+```
+Atau, dengan metode `set_upstream` dan `set_downstream`:
 
+```
 first_task.set_downstream([second_task, third_task])
-tugas_ketiga.set_upstream(tugas_keempat)
-Ketergantungan ini adalah apa yang membentuk "tepi" grafik, dan bagaimana Airflow bekerja di urutan mana untuk menjalankan tugas Anda. Secara default, tugas akan menunggu semua tugas hulunya berhasil sebelum dijalankan, tetapi ini bisa saja dikustomisasi menggunakan fitur seperti Branching, LatestOnly, dan Trigger Rules.
+third_task.set_upstream(fourth_task)
+```
+
+Ketergantungan ini adalah apa yang membentuk `edges` grafik, dan bagaimana Airflow bekerja di urutan mana untuk menjalankan tugas Anda. Secara default, tugas akan menunggu semua tugas hulunya berhasil sebelum dijalankan, tetapi ini bisa saja dikustomisasi menggunakan fitur seperti Branching, LatestOnly, dan Trigger Rules.
 
 Untuk meneruskan data antar tugas, Anda memiliki dua opsi:
 
-XComs ("Cross-communications"), sebuah sistem di mana Anda dapat memiliki tugas mendorong dan menarik sedikit metadata.
+1. `XComs` ("Cross-communications"), sebuah sistem di mana Anda dapat memiliki tugas mendorong dan menarik sedikit metadata.
 
-Mengunggah dan mengunduh file besar dari layanan penyimpanan (baik yang Anda jalankan, atau bagian dari cloud publik)
+2. Mengunggah dan mengunduh file besar dari layanan penyimpanan (baik yang Anda jalankan, atau bagian dari cloud publik)
 
 Airflow mengirimkan Tugas untuk dijalankan di Pekerja saat ruang tersedia, jadi tidak ada jaminan semua tugas di DAG Anda akan berjalan di pekerja yang sama atau mesin yang sama.
 
